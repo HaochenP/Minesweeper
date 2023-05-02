@@ -21,12 +21,11 @@ using Minesweeper;
 using System.Windows.Threading;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Globalization;
 
 namespace Minesweeper
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
+
     public partial class MainWindow : Window
     {
         ObservableCollection<List<Cell>> map = new ObservableCollection<List<Cell>>();
@@ -43,13 +42,15 @@ namespace Minesweeper
             var viewModel = new MainViewModel { Map = map };
             DataContext = viewModel;
         }
-
+        private MediaPlayer mediaPlayer = new MediaPlayer();
 
 
         public void InitializeGame()
         {
+
             Tuple<int, int, int> gameSettings = gameSetting(difficulty);
             map = new ObservableCollection<List<Cell>>();
+
             width = gameSettings.Item1;
             height = gameSettings.Item2;
             mines = gameSettings.Item3;
@@ -71,7 +72,8 @@ namespace Minesweeper
 
             var viewModel = new MainViewModel { Map = map };
             DataContext = viewModel;
-
+            // Timer functionality
+            /* 
             if (shuffleTimer != null)
             {
                 shuffleTimer.Stop();
@@ -84,7 +86,7 @@ namespace Minesweeper
 
             }
             shuffleTimer.Interval = TimeSpan.FromSeconds(1);
-            shuffleTimer.Start();
+            shuffleTimer.Start();*/
 
         }
 
@@ -96,7 +98,7 @@ namespace Minesweeper
             TimerLabel.Content = $"Time left until shuffle : {elapsedTime}s";
             if (elapsedTime == 0)
             {
-                map = randomShuffle(map);
+                map = RandomShuffle(map);
                 var viewModel = (MainViewModel)DataContext;
                 viewModel.Map = map;
                 elapsedTime = 5;
@@ -108,11 +110,56 @@ namespace Minesweeper
 
 
 
-        void button_Click(object sender, RoutedEventArgs e)
+        void ButtonClick(object sender, RoutedEventArgs e)
         {
+            GetRickRolled();
             Button button = (Button)sender;
-            Cell cell = (Cell)button.DataContext;
-            RevealCell(cell);
+            CellViewModel cell = (CellViewModel)button.Tag;
+            if (!cell.IsMine)
+            {
+                if (!cell.IsRevealed)
+                {
+                    cell.IsRevealed = true;
+                    RevealAdjcentCells(cell.X, cell.Y);
+                    if (CheckIfFinished(map))
+                    {
+                        MessageBox.Show("You Won");
+                        InitializeGame();
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("You Lost");
+                InitializeGame();
+            }
+
+        }
+
+        public void RevealAdjcentCells(int row, int column)
+        {
+            if (row < 0 || row >= width || column < 0 || column >= height)
+            {
+                return;
+            }
+            else
+            {
+                Cell cell = map[row][column];
+                if (!cell.IsRevealed && cell.NeighbouringMines == 0)
+                {
+                    cell.IsRevealed = true;
+
+                    RevealAdjcentCells(row - 1, column - 1);
+                    RevealAdjcentCells(row - 1, column);
+                    RevealAdjcentCells(row - 1, column + 1);
+                    RevealAdjcentCells(row, column - 1);
+                    RevealAdjcentCells(row, column + 1);
+                    RevealAdjcentCells(row + 1, column - 1);
+                    RevealAdjcentCells(row + 1, column);
+                    RevealAdjcentCells(row + 1, column + 1);
+
+                }
+            }
         }
 
         public void OnDifficultyMenuItemClick(object sender, RoutedEventArgs e)
@@ -137,6 +184,7 @@ namespace Minesweeper
 
             // Reinitialize the game with the new difficulty
             InitializeGame();
+            GetRickRolled();
         }
 
         public Tuple<int, int, int> gameSetting(string difficulty)
@@ -155,13 +203,73 @@ namespace Minesweeper
             }
         }
 
+        public bool RandomChoiceGenerator()
+        {
+            Random random = new Random();
+            int randomNumber = random.Next(0, 10);
+            if (randomNumber == 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
+        public void GetRickRolled()
+        {
+            if (RandomChoiceGenerator())
+            {
+                PlaySoundTrack("Sound track 3");
+            }
+        }
+
+
+        public void OnSoundTrackClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem)
+            {
+                string newSoundTrack = menuItem.Header.ToString();
+                PlaySoundTrack(newSoundTrack);
+            }
+        }
+        public void PlaySoundTrack(string track)
+        {
+            if (!string.IsNullOrEmpty(track))
+            {
+                if (track == "Sound track 1")
+                {
+                    Trace.WriteLine("Started playing");
+
+                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\02_Shop Channel.mp3"));
+                    mediaPlayer.Play();
+                }
+                else if (track == "Sound track 2")
+                {
+                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\lobby-classic-game.mp3"));
+                    mediaPlayer.Play();
+                }
+                else if (track == "Sound track 3")
+                {
+                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\Mzg1ODMxNTIzMzg1ODM3_JzthsfvUY24.MP3"));
+                    mediaPlayer.Play();
+                }
+                else {
+                    mediaPlayer.Stop();
+                }
+                
+            }
+        }
+
         public void RevealCell(Cell cell)
         {
             if (!cell.IsMine)
             {
                 if (!cell.IsRevealed)
                 {
-                    cell.Reveal();
+                    cell.IsRevealed = true;
                     if (CheckIfFinished(map))
                     {
                         MessageBox.Show("You Won");
@@ -175,6 +283,7 @@ namespace Minesweeper
                 InitializeGame();
             }
         }
+
 
         public bool CheckIfFinished(ObservableCollection<List<Cell>> map)
         {
@@ -223,22 +332,22 @@ namespace Minesweeper
             }
         }
 
-        public void revealedMines(ObservableCollection<List<Cell>> map)
+        public void RevealedMines(ObservableCollection<List<Cell>> map)
         {
-            List<Cell> revealedMines = new List<Cell>();
+            List<Cell> RevealedMines = new List<Cell>();
             foreach (List<Cell> row in map)
             {
                 foreach (Cell cell in row)
                 {
                     if (cell.IsRevealed)
                     {
-                        revealedMines.Add(cell);
+                        RevealedMines.Add(cell);
                     }
                 }
             }
         }
 
-        public ObservableCollection<List<Cell>> randomShuffle(ObservableCollection<List<Cell>> map)
+        public ObservableCollection<List<Cell>> RandomShuffle(ObservableCollection<List<Cell>> map)
         {
             Random random = new Random();
             ObservableCollection<List<Cell>> newMap = DeepCopy(map);
@@ -256,7 +365,7 @@ namespace Minesweeper
                         int currentCellCol = cell.Y;
                         if (!newMap[randomRow][randomCol].IsRevealed && !newMap[currentCellRow][currentCellCol].IsRevealed)
                         {
-                            var result = swapCells(cell, newMap[randomRow][randomCol]);
+                            var result = SwapCells(cell, newMap[randomRow][randomCol]);
                             newMap[currentCellRow][currentCellCol] = result.Item1;
                             newMap[randomRow][randomCol] = result.Item2;
                         }
@@ -288,7 +397,7 @@ namespace Minesweeper
         }
 
 
-        public Tuple<Cell, Cell> swapCells(Cell cell1, Cell cell2)
+        public Tuple<Cell, Cell> SwapCells(Cell cell1, Cell cell2)
         {
             // Swap X and Y coordinates
             int tempX = cell1.X;
@@ -320,59 +429,8 @@ namespace Minesweeper
 
     }
 
-    public class Cell
-    {
-        public int X { get; set; }
-        public int Y { get; set; }
-        public bool IsMine { get; set; }
-        public bool IsRevealed { get; set; }
-        public bool IsFlagged { get; set; }
-        public int NeighbouringMines { get; set; }
+    
 
-        public string Difficulty { get; set; }
 
-        public Cell(int x, int y, string difficulty)
-        {
-            X = x;
-            Y = y;
-            IsMine = false;
-            IsRevealed = false;
-            IsFlagged = false;
-            NeighbouringMines = 0;
-            Difficulty = difficulty;
-        }
-
-        public void Reveal()
-        {
-            IsRevealed = true;
-        }
-
-        public void ToggleFlag()
-        {
-            IsFlagged = !IsFlagged;
-        }
-
-        public void UpdateAdjacentMinesForNeighbors(int row, int col, ObservableCollection<List<Cell>> map)
-        {
-            int[] neighbors = { -1, 0, 1 };
-
-            foreach (int rowOffset in neighbors)
-            {
-                foreach (int colOffset in neighbors)
-                {
-                    if (rowOffset == 0 && colOffset == 0)
-                        continue;
-
-                    int newRow = row + rowOffset;
-                    int newCol = col + colOffset;
-
-                    if (newRow >= 0 && newRow < map.Count && newCol >= 0 && newCol < map[0].Count)
-                    {
-                        map[newRow][newCol].NeighbouringMines++;
-                    }
-                }
-            }
-        }
-    }
 }
 
