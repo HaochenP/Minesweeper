@@ -10,16 +10,23 @@
         <local:MainWindow />
     </Window.DataContext>
     <Grid>
-        <Grid.Resources>
-            <Style x:Key="CellButton" TargetType="{x:Type Button}">
-                <Setter Property="Width" Value="30" />
-                <Setter Property="Height" Value="30" />
-                <Setter Property="Margin" Value="1" />
-                <Setter Property="Background" Value="Gray" />
-                <Setter Property="BorderBrush" Value="Black" />
-                <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="Padding" Value="0" />  
-            </Style>
-        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Menu>
+            <MenuItem Header="Difficulty">
+                <MenuItem x:Name="EasyMenuItem" Header="Easy" Click="OnDifficultyMenuItemClick"/>
+                <MenuItem x:Name="MediumMenuItem" Header="Medium" Click="OnDifficultyMenuItemClick"/>
+                <MenuItem x:Name="HardMenuItem" Header="Hard" Click="OnDifficultyMenuItemClick"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Rest of your XAML code for the game board goes here -->
     </Grid>
+
+
+
 </Window>
+
