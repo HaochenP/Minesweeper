@@ -22,7 +22,8 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
 
-            <ColumnDefinition Width="10*"></ColumnDefinition>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
+            <ColumnDefinition Width="500"></ColumnDefinition>
         </Grid.ColumnDefinitions>
 
         <Menu Margin="2" Grid.Row="0">
@@ -45,10 +46,13 @@
                 <MenuItem  Header="Sound track 1" Click="OnSoundTrackClick"/>
                 <MenuItem  Header="Sound track 2" Click="OnSoundTrackClick"/>
                 <MenuItem Header="Stop Playing" Click="OnSoundTrackClick"/>
-                
             </MenuItem>
+            <MenuItem Header="Help" Name ="Video">
+                <MenuItem  Header="Help to concentrate" Click="DisplayVideo"/>
+            </MenuItem>
+            
         </Menu>
-        
+        <MediaElement IsMuted="True"  Name="mePlayer" Stretch="Fill" Grid.Row="3"  HorizontalAlignment="Stretch" Grid.Column="2"/>
         <Label Content =" Timer" x:Name="TimerLabel" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2" Grid.Row=" 2"/>
         <Image x:Name="Face" Grid.Row ="1" Source="/Minesweeper;component/Resources/normal.png" HorizontalAlignment="Center" MouseLeftButtonDown="ImageClick" Width=" 50" Height="50" Margin="2"/>
         <Label Content =" 99" x:Name="BestTimeLabel"  VerticalAlignment="Top" Margin="2" Grid.Row=" 1" HorizontalAlignment="Left"/>

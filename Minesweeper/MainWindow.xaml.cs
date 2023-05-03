@@ -38,6 +38,9 @@ namespace Minesweeper
         private bool shuffleMode = false;
         private DispatcherTimer timer;
         private int timeSpent;
+        private bool firstClick = true;
+        private int bestTime = 999;
+        private bool isPlaying = false;
 
 
         public MainWindow()
@@ -46,12 +49,19 @@ namespace Minesweeper
             InitializeGame();
             var viewModel = new MainViewModel { Map = map };
             DataContext = viewModel;
-        }
+            bestTime = LoadBestTimeFromFile();
+    }
         private MediaPlayer mediaPlayer = new MediaPlayer();
 
 
         public void InitializeGame()
         {
+            timeSpent = 0;
+            if (timer != null)
+            {
+                timer.Stop();
+            }
+            firstClick = true;
             if (shuffleMode)
             {
                 ShuffleModeOn();
@@ -62,7 +72,7 @@ namespace Minesweeper
             width = gameSettings.Item1;
             height = gameSettings.Item2;
             mines = gameSettings.Item3;
-            
+
             int unRevealedSquares = width * height;
 
             for (int i = 0; i < width; i++)
@@ -78,13 +88,11 @@ namespace Minesweeper
             map = PlaceMines(mines, map);
             //map = RandomShuffle(map);
             //UpdateNeighbourMines(map);
-
-            RecordTimeSpent();
             var viewModel = new MainViewModel { Map = map };
             DataContext = viewModel;
             // Timer functionality
- 
-           
+
+
 
         }
 
@@ -116,7 +124,7 @@ namespace Minesweeper
 
 
 
-        public void ShuffleModeOn() 
+        public void ShuffleModeOn()
         {
             elapsedTime = 10;
             if (shuffleTimer != null)
@@ -172,8 +180,28 @@ namespace Minesweeper
                 elapsedTime = 10;
                 TimerLabel.Content = $"Time left until shuffle : {elapsedTime}s";
             }
-            
+
         }
+
+        public void DisplayVideo(object sender, EventArgs e)
+        {
+            if (isPlaying)
+            {
+                Application.Current.MainWindow.Height -= 500;
+                Application.Current.MainWindow.Width -= 500;
+                mePlayer.Source = null;
+                isPlaying = false;
+            }
+            else
+            {
+                mePlayer.Source = new Uri(@"D:\cs\Minesweeper\Minesweeper\Resources\subway.mp4");
+                Application.Current.MainWindow.Height += 500;
+                Application.Current.MainWindow.Width += 500;
+                isPlaying = true;
+            }
+
+        }
+
 
         void Flag(object sender, MouseButtonEventArgs e)
         {
@@ -183,9 +211,22 @@ namespace Minesweeper
             cell.IsFlagged = !cell.IsFlagged;
         }
 
+        public void SaveBestTimeToFile()
+        {
+            string path = @"D:\cs\Minesweeper\Minesweeper\Resources\bestTime.txt";
+            using (StreamWriter sw = File.CreateText(path))
+            {
+                sw.WriteLine(bestTime);
+            }
+        }
 
         void ButtonClick(object sender, RoutedEventArgs e)
         {
+            if (firstClick)
+            {
+                RecordTimeSpent();
+                firstClick = false;
+            }
             GetRickRolled();
             Button button = (Button)sender;
             Cell cell = (Cell)button.Tag;
@@ -198,21 +239,42 @@ namespace Minesweeper
                         RevealAdjcentCells(cell.X, cell.Y);
                         if (CheckIfFinished(map))
                         {
+                            // Change face to win face
                             BitmapImage bitmap = new BitmapImage();
                             bitmap.BeginInit();
                             bitmap.UriSource = new Uri("/Minesweeper;component/Resources/win.png", UriKind.Relative);
                             bitmap.EndInit();
                             Face.Source = bitmap;
+                            Face.Width = 300;
+                            Face.Height = 300;
+                            // Stop timer
                             ShuffleModeOff();
                             timer.Stop();
-                            MessageBox.Show("You Won");
+
+
+                            // Set IsGaming to false
                             var viewModel = DataContext as MainViewModel;
                             viewModel.IsGaming = false;
+
+                            // Show message box
+                            MessageBox.Show("You Won");
                             MessageBox.Show("You unlocked a secret sound track");
+
+                            // Add new menu item
                             MenuItem newMenuItem2 = new MenuItem();
                             newMenuItem2.Header = "Secret sound track";
                             newMenuItem2.Click += new RoutedEventHandler(OnSoundTrackClick);
                             SoundTracks.Items.Add(newMenuItem2);
+
+                            // Check for best time
+                            if (timeSpent < bestTime)
+                            {
+                                bestTime = timeSpent;
+                                SaveBestTimeToFile();
+                                BestTimeLabel.Content = $"Best Time: {bestTime}";
+                                MessageBox.Show("Pog, You got a new best time");
+                            }
+
 
                             //InitializeGame();
                         }
@@ -229,60 +291,28 @@ namespace Minesweeper
                     bitmap.EndInit();
                     Face.Source = bitmap;
                     ShuffleModeOff();
-                    MessageBox.Show("You Lost");
+
+                    Face.Width = 300;
+                    Face.Height = 300;
+
+
                     timer.Stop();
                     var viewModel = DataContext as MainViewModel;
                     viewModel.IsGaming = false;
+                    CustomMessageBox customMessageBox = new CustomMessageBox();
+                    customMessageBox.Owner = this;
+                    customMessageBox.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                    customMessageBox.ShowDialog();
+
+
                     //InitializeGame();
                 }
             }
-            
+
 
         }
 
-        public void RevealAdjcentCells(int row, int column)
-        {
-            if (row < 0 || row >= width || column < 0 || column >= height)
-            {
-                return;
-            }
-            else
-            {
-                Cell cell = map[row][column];
-                Trace.WriteLine("Checking " + row + column);
-                Trace.WriteLine(""+cell.IsRevealed + cell.IsMine);
-                if (!cell.IsRevealed && !cell.IsMine)
-                {
-                    cell.IsRevealed = true;
-                    if (cell.NeighbouringMines == 0)
-                    {
-                        RevealAdjcentCells(row - 1, column - 1);
-                        RevealAdjcentCells(row - 1, column);
-                        RevealAdjcentCells(row - 1, column + 1);
-                        RevealAdjcentCells(row, column - 1);
-                        RevealAdjcentCells(row, column + 1);
-                        RevealAdjcentCells(row + 1, column - 1);
-                        RevealAdjcentCells(row + 1, column);
-                        RevealAdjcentCells(row + 1, column + 1);
-                    }
-                }
-            }
-        }
-
-
-        public void RevealAllMines(ObservableCollection<List<Cell>> map)
-        {
-            foreach (List<Cell> row in map)
-            {
-                foreach (Cell cell in row)
-                {
-                    if (cell.IsMine)
-                    {
-                        cell.IsRevealed = true;
-                    }
-                }
-            }
-        }
+        
 
 
         public void OnDifficultyMenuItemClick(object sender, RoutedEventArgs e)
@@ -312,24 +342,45 @@ namespace Minesweeper
 
         public Tuple<int, int, int> gameSetting(string difficulty)
         {
+            int width = 0;
+            int height = 0;
+            int mineCount = 0;
+
             if (difficulty == "Easy")
             {
                 Application.Current.MainWindow.Height = 450;
-                Application.Current.MainWindow.Width = 350;
-                return Tuple.Create(9, 9, 10);
+                Application.Current.MainWindow.Width = 450;
+                width = 9;
+                height = 9;
+                mineCount = 10;
+
             }
             else if (difficulty == "Medium")
             {
                 Application.Current.MainWindow.Height = 650;
-                Application.Current.MainWindow.Width = 550;
-                return Tuple.Create(16, 16, 40);
+                Application.Current.MainWindow.Width = 600;
+                width = 16;
+                height = 16;
+                mineCount = 40;
+
             }
             else
             {
+                width = 30;
+                height = 16;
+                mineCount = 99;
+
                 Application.Current.MainWindow.Height = 650;
                 Application.Current.MainWindow.Width = 1000;
-                return Tuple.Create(16, 30, 99);
+                
             }
+
+            if (isPlaying)
+            {
+                Application.Current.MainWindow.Height += 500;
+                Application.Current.MainWindow.Width += 500;
+            }
+            return Tuple.Create(width, height, mineCount);
         }
 
         public bool RandomChoiceGenerator()
@@ -373,6 +424,8 @@ namespace Minesweeper
             bitmap.UriSource = new Uri("/Minesweeper;component/Resources/normal.png", UriKind.Relative);
             bitmap.EndInit();
             Face.Source = bitmap;
+            Face.Width = 30;
+            Face.Height = 30;
             InitializeGame();
         }
 
@@ -397,13 +450,28 @@ namespace Minesweeper
                     mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\secret-track.MP3"));
                     mediaPlayer.Play();
                 }
-                else {
+                else
+                {
                     mediaPlayer.Stop();
                 }
-                
+
             }
         }
 
+
+        public int LoadBestTimeFromFile()
+        {
+            string path = "D:\\cs\\Minesweeper\\Minesweeper\\Resources\\bestTime.txt";
+            if (File.Exists(path))
+            {
+                string[] lines = File.ReadAllLines(path);
+                return Int32.Parse(lines[0]);
+            }
+            else
+            {
+                return 999;
+            }
+        }
 
 
         public bool CheckIfFinished(ObservableCollection<List<Cell>> map)
@@ -412,7 +480,7 @@ namespace Minesweeper
             {
                 foreach (Cell cell in row)
                 {
-                    if(!cell.IsRevealed && !cell.IsMine)
+                    if (!cell.IsRevealed && !cell.IsMine)
                     {
                         return false;
                     }
@@ -557,8 +625,50 @@ namespace Minesweeper
 
             return Tuple.Create(cell1, cell2);
         }
+        public void RevealAdjcentCells(int row, int column)
+        {
+            if (row < 0 || row >= width || column < 0 || column >= height)
+            {
+                return;
+            }
+            else
+            {
+                Cell cell = map[row][column];
+                Trace.WriteLine("Checking " + row + column);
+                Trace.WriteLine("" + cell.IsRevealed + cell.IsMine);
+                if (!cell.IsRevealed && !cell.IsMine)
+                {
+                    cell.IsRevealed = true;
+                    if (cell.NeighbouringMines == 0)
+                    {
+                        RevealAdjcentCells(row - 1, column - 1);
+                        RevealAdjcentCells(row - 1, column);
+                        RevealAdjcentCells(row - 1, column + 1);
+                        RevealAdjcentCells(row, column - 1);
+                        RevealAdjcentCells(row, column + 1);
+                        RevealAdjcentCells(row + 1, column - 1);
+                        RevealAdjcentCells(row + 1, column);
+                        RevealAdjcentCells(row + 1, column + 1);
+                    }
+                }
+            }
+        }
+
+
+        public void RevealAllMines(ObservableCollection<List<Cell>> map)
+        {
+            foreach (List<Cell> row in map)
+            {
+                foreach (Cell cell in row)
+                {
+                    if (cell.IsMine)
+                    {
+                        cell.IsRevealed = true;
+                    }
+                }
+            }
+        }
 
     }
 
 }
-
