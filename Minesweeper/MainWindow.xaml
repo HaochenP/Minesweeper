@@ -9,6 +9,8 @@
     <Window.Resources>
         <local:RevealedCellContentConverter x:Key="RevealedCellContentConverter" />
         <local:RevealedNeighbouringMinesConverter x:Key="RevealedNeighbouringMinesConverter" />
+        <local:BooleanConvert x:Key="BooleanConvert" />
+        
     </Window.Resources>
 
     <Grid x:Name="grid">
@@ -33,20 +35,25 @@
                 <MenuItem x:Name="HardMenuItem" Header="Hard" Click="OnDifficultyMenuItemClick"/>
             </MenuItem>
 
-            <MenuItem Header="Sound tracks">
+            <MenuItem Header="Game modes" Name ="Gamemodes">
+                <MenuItem Header="Shuffle Mode" Click="ToggleShuffle" Name="ShuffleMode"/>
+
+            </MenuItem>
+
+
+            <MenuItem Header="Sound tracks" Name ="SoundTracks">
                 <MenuItem  Header="Sound track 1" Click="OnSoundTrackClick"/>
                 <MenuItem  Header="Sound track 2" Click="OnSoundTrackClick"/>
-                <MenuItem  Header="Secret sound track" Click="OnSoundTrackClick"/>
                 <MenuItem Header="Stop Playing" Click="OnSoundTrackClick"/>
                 
             </MenuItem>
         </Menu>
         
-   
         <Label Content =" Timer" x:Name="TimerLabel" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2" Grid.Row=" 2"/>
-        <Image x:Name="Face" Grid.Row ="1" Source="/Minesweeper;component/Resources/normal.png" MouseLeftButtonDown="ImageClick" Width=" 50" Height="50" Margin="2"/>
-
-
+        <Image x:Name="Face" Grid.Row ="1" Source="/Minesweeper;component/Resources/normal.png" HorizontalAlignment="Center" MouseLeftButtonDown="ImageClick" Width=" 50" Height="50" Margin="2"/>
+        <Label Content =" 99" x:Name="BestTimeLabel"  VerticalAlignment="Top" Margin="2" Grid.Row=" 1" HorizontalAlignment="Left"/>
+        <Label Content =" 0" x:Name="TimeSpentLabel"  VerticalAlignment="Top" Margin="2" Grid.Row=" 1" HorizontalAlignment="Right"/>
+        
         <ItemsControl ItemsSource="{Binding Map}" Grid.Row="3" Margin="3" HorizontalAlignment="Center">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -63,25 +70,47 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Click="ButtonClick" Tag="{Binding}" Margin="0" HorizontalAlignment="Left" Foreground="Green" Width="30" Height="30" MouseRightButtonUp="Flag">
+                                <Button Click="ButtonClick" Tag="{Binding}" Margin="0" HorizontalAlignment="Left" Foreground="Green" Width="30" Height="30" MouseRightButtonUp="Flag"
+                                        IsEnabled="{Binding DataContext.IsGaming, RelativeSource={RelativeSource AncestorType={x:Type Window}}}">
+
+
                                     <Button.Content>
                                         <MultiBinding Converter="{StaticResource RevealedNeighbouringMinesConverter}">
                                             <Binding Path="IsRevealed" />
                                             <Binding Path="NeighbouringMines" />
+                                            <Binding Path="IsMine" />
                                         </MultiBinding>
                                     </Button.Content>
 
-
                                     <Button.Style>
                                         <Style TargetType="Button">
-                                            <Setter Property="Background" Value="Gray"/>
+                                            <Setter Property="Background" Value="LightGray"/>
+                                            <Setter Property="BorderBrush" Value="Black"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
                                             <Setter Property="Content" Value="{Binding NeighbouringMines, Converter={StaticResource RevealedCellContentConverter}}"/>
+                                            <Setter Property="Padding" Value="0"/>
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsEnabled" Value="False">
+                                                                <Setter TargetName="border" Property="Opacity" Value="1"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
                                             <Style.Triggers>
                                                 <MultiDataTrigger>
                                                     <MultiDataTrigger.Conditions>
                                                         <Condition Binding="{Binding IsRevealed}" Value="True" />
+                                                        <Condition Binding="{Binding IsMine}" Value="False" />
                                                     </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Background" Value="White" />
+                                                    <Setter Property="Background" Value="WhiteSmoke" />
                                                     <Setter Property="Content" Value="{Binding NeighbouringMines}" />
                                                 </MultiDataTrigger>
                                                 <MultiDataTrigger>
@@ -91,12 +120,19 @@
                                                     <Setter Property="Background" Value="Red" />
                                                     <Setter Property="Content" Value="" />
                                                 </MultiDataTrigger>
-
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding IsRevealed}" Value="True" />
+                                                        <Condition Binding="{Binding IsMine}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="DarkRed" />
+                                                    <Setter Property="Content" Value="💣" />
+                                                </MultiDataTrigger>
+   
                                             </Style.Triggers>
                                         </Style>
                                     </Button.Style>
                                 </Button>
-
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

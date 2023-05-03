@@ -15,10 +15,18 @@ namespace Minesweeper
         {
             bool isRevealed = (bool)values[0];
             int neighboringMines = (int)values[1];
+            bool isMine = (bool)values[2];
 
             if (isRevealed)
             {
+                if (!isMine)
+                { 
                 return neighboringMines > 0 ? neighboringMines.ToString() : string.Empty;
+                } 
+                else
+                {
+                    return "💣";
+                }
             }
             else
             {
