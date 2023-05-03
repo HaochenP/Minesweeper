@@ -11,7 +11,6 @@ namespace Minesweeper
     {
         public int X { get; set; }
         public int Y { get; set; }
-        public bool IsFlagged { get; set; }
 
         public string Difficulty { get; set; }
 

@@ -8,10 +8,12 @@
         Title="MainWindow" Height="450" Width="800">
     <Window.Resources>
         <local:RevealedCellContentConverter x:Key="RevealedCellContentConverter" />
+        <local:RevealedNeighbouringMinesConverter x:Key="RevealedNeighbouringMinesConverter" />
     </Window.Resources>
 
     <Grid x:Name="grid">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -21,7 +23,7 @@
             <ColumnDefinition Width="10*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
 
-        <Menu>
+        <Menu Margin="2" Grid.Row="0">
             <MenuItem Header="New Game">
                 <MenuItem Header="New Game" Click="NewGame"/>
             </MenuItem>
@@ -34,14 +36,18 @@
             <MenuItem Header="Sound tracks">
                 <MenuItem  Header="Sound track 1" Click="OnSoundTrackClick"/>
                 <MenuItem  Header="Sound track 2" Click="OnSoundTrackClick"/>
-                <MenuItem  Header="Sound track 3" Click="OnSoundTrackClick"/>
+                <MenuItem  Header="Secret sound track" Click="OnSoundTrackClick"/>
                 <MenuItem Header="Stop Playing" Click="OnSoundTrackClick"/>
+                
             </MenuItem>
         </Menu>
-        <Label Content =" Timer" x:Name="TimerLabel" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10,10,0,0" Grid.Row=" 1"/>
+        
+   
+        <Label Content =" Timer" x:Name="TimerLabel" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2" Grid.Row=" 2"/>
+        <Image x:Name="Face" Grid.Row ="1" Source="/Minesweeper;component/Resources/normal.png" MouseLeftButtonDown="ImageClick" Width=" 50" Height="50" Margin="2"/>
 
 
-        <ItemsControl ItemsSource="{Binding Map}" Grid.Row="2" Margin="5" HorizontalAlignment="Center">
+        <ItemsControl ItemsSource="{Binding Map}" Grid.Row="3" Margin="3" HorizontalAlignment="Center">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Vertical" />
@@ -57,21 +63,35 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Click="ButtonClick" Tag="{Binding}" 
-        Margin="5" HorizontalAlignment="Left" Foreground="LightGray"
-        Width="30" Height="30">
+                                <Button Click="ButtonClick" Tag="{Binding}" Margin="0" HorizontalAlignment="Left" Foreground="Green" Width="30" Height="30" MouseRightButtonUp="Flag">
+                                    <Button.Content>
+                                        <MultiBinding Converter="{StaticResource RevealedNeighbouringMinesConverter}">
+                                            <Binding Path="IsRevealed" />
+                                            <Binding Path="NeighbouringMines" />
+                                        </MultiBinding>
+                                    </Button.Content>
+
+
                                     <Button.Style>
                                         <Style TargetType="Button">
                                             <Setter Property="Background" Value="Gray"/>
                                             <Setter Property="Content" Value="{Binding NeighbouringMines, Converter={StaticResource RevealedCellContentConverter}}"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsRevealed}" Value="True">
-                                                    <Setter Property="Background" Value="White"/>
-                                                    <Setter Property="Content" Value="{Binding NeighbouringMines}"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding IsFlagged}" Value="True">
-                                                    <Setter Property="Background" Value="Red"/>
-                                                </DataTrigger>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding IsRevealed}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="White" />
+                                                    <Setter Property="Content" Value="{Binding NeighbouringMines}" />
+                                                </MultiDataTrigger>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding IsFlagged}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="Red" />
+                                                    <Setter Property="Content" Value="" />
+                                                </MultiDataTrigger>
+
                                             </Style.Triggers>
                                         </Style>
                                     </Button.Style>

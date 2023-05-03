@@ -8,7 +8,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\lose.png" />
+    <None Remove="Resources\normal.png" />
+    <None Remove="Resources\win.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\lose.png" />
+    <Resource Include="Resources\normal.png" />
+    <Resource Include="Resources\win.png" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,11 @@
-﻿using System.ComponentModel;
+﻿using Minesweeper;
+using System.ComponentModel;
 
 public class CellViewModel : INotifyPropertyChanged
 {
+
+
+
     private bool _IsRevealed;
     public bool IsRevealed
     {
@@ -55,6 +59,18 @@ public class CellViewModel : INotifyPropertyChanged
         {
             _IsMine = value;
             OnPropertyChanged(nameof(IsMine));
+        }
+    }
+
+
+    private bool _IsFlagged;
+    public bool IsFlagged
+    {
+        get { return _IsFlagged; }
+        set
+        {
+            _IsFlagged = value;
+            OnPropertyChanged(nameof(IsFlagged));
         }
     }
 
