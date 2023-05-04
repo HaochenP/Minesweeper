@@ -29,19 +29,26 @@ namespace Minesweeper
     public partial class MainWindow : Window
     {
         ObservableCollection<List<Cell>> map = new ObservableCollection<List<Cell>>();
+        // Initialize
         int width = 10;
         int height = 10;
         string difficulty = "Easy";
         int mines = 50;
+        // ShuffleTimer
         private DispatcherTimer shuffleTimer;
         private int elapsedTime;
         private bool shuffleMode = false;
+        // Score timer
         private DispatcherTimer timer;
         private int timeSpent;
         private bool firstClick = true;
         private int bestTime = 999;
         private bool isPlaying = false;
+        private bool amongusMode = false;
 
+        //Amongus
+        private MovingObject amongus;
+        public DispatcherTimer amongusTimer;
 
         public MainWindow()
         {
@@ -50,7 +57,8 @@ namespace Minesweeper
             var viewModel = new MainViewModel { Map = map };
             DataContext = viewModel;
             bestTime = LoadBestTimeFromFile();
-    }
+            //SpawningMovingObject();
+        }
         private MediaPlayer mediaPlayer = new MediaPlayer();
 
 
@@ -126,6 +134,7 @@ namespace Minesweeper
 
         public void ShuffleModeOn()
         {
+            MessageBox.Show("Shuffle mode is on, any remaining unclicked cells will be randomly shuffled every 10 seconds");
             elapsedTime = 10;
             if (shuffleTimer != null)
             {
@@ -194,7 +203,7 @@ namespace Minesweeper
             }
             else
             {
-                mePlayer.Source = new Uri(@"D:\cs\Minesweeper\Minesweeper\Resources\subway.mp4");
+                mePlayer.Source = new Uri(@"C:\Users\haochenjiang\source\repos\Minesweeper\Minesweeper\Resources\subway.mp4");
                 Application.Current.MainWindow.Height += 500;
                 Application.Current.MainWindow.Width += 500;
                 isPlaying = true;
@@ -230,8 +239,105 @@ namespace Minesweeper
             GetRickRolled();
             Button button = (Button)sender;
             Cell cell = (Cell)button.Tag;
+            ClickResult(cell);
+
+
+        }
+
+
+
+
+        public void OnDifficultyMenuItemClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem)
+            {
+                string newDifficulty = menuItem.Header.ToString();
+                ChangeDifficulty(newDifficulty);
+            }
+        }
+
+        public void NewGame(object sender, RoutedEventArgs e)
+        {
+            InitializeGame();
+            MessageBox.Show(CellGrid.Width.ToString());
+            MessageBox.Show(CellGrid.Height.ToString());
+
+        }
+
+        public void ChangeDifficulty(string newDifficulty)
+        {
+            // Update the difficulty value
+            map = new ObservableCollection<List<Cell>>();
+            difficulty = newDifficulty;
+
+            // Reinitialize the game with the new difficulty
+            InitializeGame();
+            GetRickRolled();
+        }
+
+        public Tuple<int, int, int> gameSetting(string difficulty)
+        {
+            int width = 0;
+            int height = 0;
+            int mineCount = 0;
+
+            if (difficulty == "Easy")
+            {
+                Application.Current.MainWindow.Height = 450;
+                Application.Current.MainWindow.Width = 350;
+                width = 9;
+                height = 9;
+                mineCount = 10;
+
+            }
+            else if (difficulty == "Medium")
+            {
+                Application.Current.MainWindow.Height = 650;
+                Application.Current.MainWindow.Width = 600;
+                width = 16;
+                height = 16;
+                mineCount = 40;
+
+            }
+            else
+            {
+                width = 30;
+                height = 16;
+                mineCount = 99;
+
+                Application.Current.MainWindow.Height = 650;
+                Application.Current.MainWindow.Width = 1000;
+
+            }
+
+            if (isPlaying)
+            {
+                Application.Current.MainWindow.Height += 500;
+                Application.Current.MainWindow.Width += 500;
+            }
+            return Tuple.Create(width, height, mineCount);
+        }
+
+        public bool RandomChoiceGenerator()
+        {
+            Random random = new Random();
+            int randomNumber = random.Next(0, 30);
+            if (randomNumber == 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public void ClickResult(Cell cell)
+        {
+            Trace.WriteLine("i am here");
             if (!cell.IsFlagged)
             {
+                //Trace.WriteLine("among us is clicking " + cell.X + cell.Y);
                 if (!cell.IsMine)
                 {
                     if (!cell.IsRevealed)
@@ -248,6 +354,7 @@ namespace Minesweeper
                             Face.Width = 300;
                             Face.Height = 300;
                             // Stop timer
+
                             ShuffleModeOff();
                             timer.Stop();
 
@@ -295,8 +402,11 @@ namespace Minesweeper
                     Face.Width = 300;
                     Face.Height = 300;
 
+                    if (timer != null)
+                    {
+                        timer.Stop();
+                    }
 
-                    timer.Stop();
                     var viewModel = DataContext as MainViewModel;
                     viewModel.IsGaming = false;
                     CustomMessageBox customMessageBox = new CustomMessageBox();
@@ -308,101 +418,13 @@ namespace Minesweeper
                     //InitializeGame();
                 }
             }
-
-
         }
-
-        
-
-
-        public void OnDifficultyMenuItemClick(object sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem menuItem)
-            {
-                string newDifficulty = menuItem.Header.ToString();
-                ChangeDifficulty(newDifficulty);
-            }
-        }
-
-        public void NewGame(object sender, RoutedEventArgs e)
-        {
-            InitializeGame();
-        }
-
-        public void ChangeDifficulty(string newDifficulty)
-        {
-            // Update the difficulty value
-            map = new ObservableCollection<List<Cell>>();
-            difficulty = newDifficulty;
-
-            // Reinitialize the game with the new difficulty
-            InitializeGame();
-            GetRickRolled();
-        }
-
-        public Tuple<int, int, int> gameSetting(string difficulty)
-        {
-            int width = 0;
-            int height = 0;
-            int mineCount = 0;
-
-            if (difficulty == "Easy")
-            {
-                Application.Current.MainWindow.Height = 450;
-                Application.Current.MainWindow.Width = 450;
-                width = 9;
-                height = 9;
-                mineCount = 10;
-
-            }
-            else if (difficulty == "Medium")
-            {
-                Application.Current.MainWindow.Height = 650;
-                Application.Current.MainWindow.Width = 600;
-                width = 16;
-                height = 16;
-                mineCount = 40;
-
-            }
-            else
-            {
-                width = 30;
-                height = 16;
-                mineCount = 99;
-
-                Application.Current.MainWindow.Height = 650;
-                Application.Current.MainWindow.Width = 1000;
-                
-            }
-
-            if (isPlaying)
-            {
-                Application.Current.MainWindow.Height += 500;
-                Application.Current.MainWindow.Width += 500;
-            }
-            return Tuple.Create(width, height, mineCount);
-        }
-
-        public bool RandomChoiceGenerator()
-        {
-            Random random = new Random();
-            int randomNumber = random.Next(0, 30);
-            if (randomNumber == 0)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
 
         public void GetRickRolled()
         {
             if (RandomChoiceGenerator())
             {
-                PlaySoundTrack("Sound track 3");
+                PlaySoundTrack("Secret sound track");
             }
         }
 
@@ -435,19 +457,39 @@ namespace Minesweeper
             {
                 if (track == "Sound track 1")
                 {
-                    Trace.WriteLine("Started playing");
 
-                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\lobby-classic-game.mp3"));
+                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\lobby-classic-game.mp3"));
                     mediaPlayer.Play();
                 }
                 else if (track == "Sound track 2")
                 {
-                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\soundtrack1.mp3"));
+                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\soundtrack1.mp3"));
                     mediaPlayer.Play();
                 }
+                else if (track == "Sound track 3")
+                {
+                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\miiplaza.mp3"));
+                    mediaPlayer.Play();
+                }
+                else if (track == "Sound track 4")
+                {
+                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\jojo_ending_edited.mp3"));
+                    mediaPlayer.Play();
+                }
+                else if (track == "Sound track 5")
+                {
+                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\canzoni preferite.mp3"));
+                    mediaPlayer.Play();
+                }
+
                 else if (track == "Secret sound track")
                 {
-                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\secret-track.MP3"));
+                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\secret-track.MP3"));
+                    mediaPlayer.Play();
+                }
+                else if (track =="among us sound")
+                {
+                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\among-us-role-reveal.mp3"));
                     mediaPlayer.Play();
                 }
                 else
@@ -504,7 +546,7 @@ namespace Minesweeper
                     map[row][col].UpdateAdjacentMinesForNeighbors(row, col, map);
                 }
             }
-            outputMap(map);
+            //outputMap(map);
             return map;
         }
 
@@ -549,7 +591,7 @@ namespace Minesweeper
                     }
                 }
             }
-            outputMap(newMap);
+            //outputMap(newMap);
             return newMap;
         }
 
@@ -634,8 +676,7 @@ namespace Minesweeper
             else
             {
                 Cell cell = map[row][column];
-                Trace.WriteLine("Checking " + row + column);
-                Trace.WriteLine("" + cell.IsRevealed + cell.IsMine);
+
                 if (!cell.IsRevealed && !cell.IsMine)
                 {
                     cell.IsRevealed = true;
@@ -654,7 +695,7 @@ namespace Minesweeper
             }
         }
 
-
+   
         public void RevealAllMines(ObservableCollection<List<Cell>> map)
         {
             foreach (List<Cell> row in map)
@@ -669,6 +710,83 @@ namespace Minesweeper
             }
         }
 
-    }
 
+        //Amongus Logic
+        public void SpawningMovingObject()
+        {
+            amongus = new MovingObject();
+            amongus.IsHitTestVisible = true;
+
+            AmongusCanvas.Children.Add(amongus);
+            amongusTimer = new DispatcherTimer();
+            amongusTimer.Interval = TimeSpan.FromSeconds(1);
+            amongusTimer.Tick += AmongusTimerTick;
+            amongusTimer.Start();
+        }
+
+        public void AmongusTimerTick(object sender, EventArgs e)
+        {
+            if (amongus.IsVisible) 
+            { 
+            UpdateAmongusPosition();
+            AmongusRandomClick();
+            }
+            else
+            {
+                Random random = new Random();
+                if(random.Next(0,10) == 1)
+                {
+                    SpawningMovingObject();
+                }
+            }
+        }
+
+        public void UpdateAmongusPosition()
+        {
+            Random random = new Random();
+            if (amongus != null)
+            {
+                int newX = random.Next(0, ((int)GameArea.ActualWidth - (int)amongus.Width));
+                int newY = random.Next(0, ((int)GameArea.ActualHeight - (int)amongus.Height));
+
+                Canvas.SetLeft(amongus, newX);
+                Canvas.SetTop(amongus, newY);
+
+            }
+        }
+
+        public void ToggleAmongus(object sender, RoutedEventArgs e)
+        {
+            amongusMode = !amongusMode;
+            if (!amongusMode)
+            {
+                
+                
+                amongusTimer.Stop();
+                AmongusCanvas.Children.Clear();
+                MessageBox.Show("The imposter has been ejected");
+
+                return;
+            }
+            MessageBox.Show("A imposter has infiltrated your game, it will click on random cells until you click it to make it go away. It has a chance to respawn");
+            PlaySoundTrack("among us sound");
+            SpawningMovingObject();
+        }
+
+        public void AmongusRandomClick()
+        {
+            Random random = new Random();
+            if (random.Next(0, 20) == 0)
+            {
+                int row = random.Next(0, map.Count);
+                int column = random.Next(0, map[0].Count);
+                var cell = map[row][column];
+                if (!map[row][column].IsRevealed)
+                {
+                    ClickResult(cell);
+                }
+            }
+        }
+    }
 }
+

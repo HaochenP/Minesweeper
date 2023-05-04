@@ -9,8 +9,6 @@
     <Window.Resources>
         <local:RevealedCellContentConverter x:Key="RevealedCellContentConverter" />
         <local:RevealedNeighbouringMinesConverter x:Key="RevealedNeighbouringMinesConverter" />
-        <local:BooleanConvert x:Key="BooleanConvert" />
-        
     </Window.Resources>
 
     <Grid x:Name="grid">
@@ -26,7 +24,7 @@
             <ColumnDefinition Width="500"></ColumnDefinition>
         </Grid.ColumnDefinitions>
 
-        <Menu Margin="2" Grid.Row="0">
+        <Menu Margin="2" Grid.Row="0" Panel.ZIndex="1">
             <MenuItem Header="New Game">
                 <MenuItem Header="New Game" Click="NewGame"/>
             </MenuItem>
@@ -38,6 +36,7 @@
 
             <MenuItem Header="Game modes" Name ="Gamemodes">
                 <MenuItem Header="Shuffle Mode" Click="ToggleShuffle" Name="ShuffleMode"/>
+                <MenuItem Header="Among us Mode" Click="ToggleAmongus" Name="AmongusMode" />
 
             </MenuItem>
 
@@ -45,6 +44,10 @@
             <MenuItem Header="Sound tracks" Name ="SoundTracks">
                 <MenuItem  Header="Sound track 1" Click="OnSoundTrackClick"/>
                 <MenuItem  Header="Sound track 2" Click="OnSoundTrackClick"/>
+                <MenuItem Header="Sound track 3" Click="OnSoundTrackClick" />
+                <MenuItem Header="Sound track 4" Click="OnSoundTrackClick" />
+                <MenuItem Header="Sound track 5" Click="OnSoundTrackClick" />
+                
                 <MenuItem Header="Stop Playing" Click="OnSoundTrackClick"/>
             </MenuItem>
             <MenuItem Header="Help" Name ="Video">
@@ -52,13 +55,15 @@
             </MenuItem>
             
         </Menu>
-        <MediaElement IsMuted="True"  Name="mePlayer" Stretch="Fill" Grid.Row="3"  HorizontalAlignment="Stretch" Grid.Column="2"/>
-        <Label Content =" Timer" x:Name="TimerLabel" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2" Grid.Row=" 2"/>
-        <Image x:Name="Face" Grid.Row ="1" Source="/Minesweeper;component/Resources/normal.png" HorizontalAlignment="Center" MouseLeftButtonDown="ImageClick" Width=" 50" Height="50" Margin="2"/>
+        <MediaElement IsMuted="True"  Name="mePlayer" Stretch="Fill" Grid.Row="3"  HorizontalAlignment="Stretch" Grid.Column="2" Panel.ZIndex="1"/>
+        <Label Content =" Timer" x:Name="TimerLabel" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2" Grid.Row=" 2" Panel.ZIndex="1"/>
+        <Image Panel.ZIndex="2" x:Name="Face" Grid.Row ="1" Source="/Minesweeper;component/Resources/normal.png" HorizontalAlignment="Center" MouseLeftButtonDown="ImageClick" Width=" 50" Height="50" Margin="2"/>
         <Label Content =" 99" x:Name="BestTimeLabel"  VerticalAlignment="Top" Margin="2" Grid.Row=" 1" HorizontalAlignment="Left"/>
         <Label Content =" 0" x:Name="TimeSpentLabel"  VerticalAlignment="Top" Margin="2" Grid.Row=" 1" HorizontalAlignment="Right"/>
-        
-        <ItemsControl ItemsSource="{Binding Map}" Grid.Row="3" Margin="3" HorizontalAlignment="Center">
+
+ 
+        <Grid x:Name="GameArea" Grid.Row="3" Panel.ZIndex="2">
+        <ItemsControl ItemsSource="{Binding Map}" Grid.Row="3" Margin="3" HorizontalAlignment="Center" Panel.ZIndex="0" Name="CellGrid">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Vertical" />
@@ -74,7 +79,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Click="ButtonClick" Tag="{Binding}" Margin="0" HorizontalAlignment="Left" Foreground="Green" Width="30" Height="30" MouseRightButtonUp="Flag"
+                                <Button Click="ButtonClick" Tag="{Binding}" Margin="0" HorizontalAlignment="Left" Foreground="Green" Width="30" Height="30" MouseRightButtonDown="Flag"
                                         IsEnabled="{Binding DataContext.IsGaming, RelativeSource={RelativeSource AncestorType={x:Type Window}}}">
 
 
@@ -143,5 +148,9 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+            <Canvas x:Name="AmongusCanvas" Panel.ZIndex="100">
+                
+            </Canvas>
+        </Grid>
     </Grid>
 </Window>
