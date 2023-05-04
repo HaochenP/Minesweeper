@@ -1,27 +1,17 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Windows.Controls.Primitives;
 using Minesweeper;
 using System.Windows.Threading;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Globalization;
+
 
 namespace Minesweeper
 {
@@ -30,10 +20,10 @@ namespace Minesweeper
     {
         ObservableCollection<List<Cell>> map = new ObservableCollection<List<Cell>>();
         // Initialize
-        int width = 10;
-        int height = 10;
-        string difficulty = "Easy";
-        int mines = 50;
+        private int width = 10;
+        private int height = 10;
+        private string difficulty = "Easy";
+        private int mines = 50;
         // ShuffleTimer
         private DispatcherTimer shuffleTimer;
         private int elapsedTime;
@@ -48,7 +38,7 @@ namespace Minesweeper
 
         //Amongus
         private MovingObject amongus;
-        public DispatcherTimer amongusTimer;
+        private DispatcherTimer amongusTimer;
 
         public MainWindow()
         {
@@ -62,8 +52,15 @@ namespace Minesweeper
         private MediaPlayer mediaPlayer = new MediaPlayer();
 
 
-        public void InitializeGame()
+        private void InitializeGame()
         {
+            BitmapImage bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri("/Minesweeper;component/Resources/normal.png", UriKind.Relative);
+            bitmap.EndInit();
+            Face.Source = bitmap;
+            Face.Width = 50;
+            Face.Height = 50;
             timeSpent = 0;
             if (timer != null)
             {
@@ -74,6 +71,13 @@ namespace Minesweeper
             {
                 ShuffleModeOn();
             }
+
+            if (amongusMode)
+            {
+                AmongusCanvas.Children.Clear();
+                SpawningMovingObject();
+            }
+
             Tuple<int, int, int> gameSettings = gameSetting(difficulty);
             map = new ObservableCollection<List<Cell>>();
 
@@ -81,7 +85,6 @@ namespace Minesweeper
             height = gameSettings.Item2;
             mines = gameSettings.Item3;
 
-            int unRevealedSquares = width * height;
 
             for (int i = 0; i < width; i++)
             {
@@ -104,7 +107,7 @@ namespace Minesweeper
 
         }
 
-        public void RecordTimeSpent()
+        private void RecordTimeSpent()
         {
             timeSpent = 0;
             if (timer != null)
@@ -123,7 +126,7 @@ namespace Minesweeper
         }
 
 
-        public void TimerTick(object sender, EventArgs e)
+        private void TimerTick(object sender, EventArgs e)
         {
             timeSpent++;
             TimeSpentLabel.Content = $"{timeSpent}";
@@ -132,7 +135,7 @@ namespace Minesweeper
 
 
 
-        public void ShuffleModeOn()
+        private void ShuffleModeOn()
         {
             MessageBox.Show("Shuffle mode is on, any remaining unclicked cells will be randomly shuffled every 10 seconds");
             elapsedTime = 10;
@@ -151,7 +154,7 @@ namespace Minesweeper
             shuffleTimer.Start();
         }
 
-        public void ShuffleModeOff()
+        private void ShuffleModeOff()
         {
             elapsedTime = 10;
             if (shuffleTimer != null)
@@ -160,7 +163,7 @@ namespace Minesweeper
             }
         }
 
-        public void ToggleShuffle(object sender, EventArgs e)
+        private void ToggleShuffle(object sender, EventArgs e)
         {
             shuffleMode = !shuffleMode;
             if (shuffleMode)
@@ -192,7 +195,7 @@ namespace Minesweeper
 
         }
 
-        public void DisplayVideo(object sender, EventArgs e)
+        private void DisplayVideo(object sender, EventArgs e)
         {
             if (isPlaying)
             {
@@ -203,7 +206,7 @@ namespace Minesweeper
             }
             else
             {
-                mePlayer.Source = new Uri(@"C:\Users\haochenjiang\source\repos\Minesweeper\Minesweeper\Resources\subway.mp4");
+                mePlayer.Source = new Uri(@"D:\cs\Minesweeper\Minesweeper\Resources\subway.mp4");
                 Application.Current.MainWindow.Height += 500;
                 Application.Current.MainWindow.Width += 500;
                 isPlaying = true;
@@ -212,7 +215,7 @@ namespace Minesweeper
         }
 
 
-        void Flag(object sender, MouseButtonEventArgs e)
+        private void Flag(object sender, MouseButtonEventArgs e)
         {
             GetRickRolled();
             Button button = (Button)sender;
@@ -220,7 +223,7 @@ namespace Minesweeper
             cell.IsFlagged = !cell.IsFlagged;
         }
 
-        public void SaveBestTimeToFile()
+        private void SaveBestTimeToFile()
         {
             string path = @"D:\cs\Minesweeper\Minesweeper\Resources\bestTime.txt";
             using (StreamWriter sw = File.CreateText(path))
@@ -229,7 +232,7 @@ namespace Minesweeper
             }
         }
 
-        void ButtonClick(object sender, RoutedEventArgs e)
+        private void ButtonClick(object sender, RoutedEventArgs e)
         {
             if (firstClick)
             {
@@ -244,10 +247,7 @@ namespace Minesweeper
 
         }
 
-
-
-
-        public void OnDifficultyMenuItemClick(object sender, RoutedEventArgs e)
+        private void OnDifficultyMenuItemClick(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem menuItem)
             {
@@ -256,15 +256,12 @@ namespace Minesweeper
             }
         }
 
-        public void NewGame(object sender, RoutedEventArgs e)
+        private void NewGame(object sender, RoutedEventArgs e)
         {
             InitializeGame();
-            MessageBox.Show(CellGrid.Width.ToString());
-            MessageBox.Show(CellGrid.Height.ToString());
-
         }
 
-        public void ChangeDifficulty(string newDifficulty)
+        private void ChangeDifficulty(string newDifficulty)
         {
             // Update the difficulty value
             map = new ObservableCollection<List<Cell>>();
@@ -275,7 +272,7 @@ namespace Minesweeper
             GetRickRolled();
         }
 
-        public Tuple<int, int, int> gameSetting(string difficulty)
+        private Tuple<int, int, int> gameSetting(string difficulty)
         {
             int width = 0;
             int height = 0;
@@ -284,7 +281,7 @@ namespace Minesweeper
             if (difficulty == "Easy")
             {
                 Application.Current.MainWindow.Height = 450;
-                Application.Current.MainWindow.Width = 350;
+                Application.Current.MainWindow.Width = 380;
                 width = 9;
                 height = 9;
                 mineCount = 10;
@@ -301,8 +298,8 @@ namespace Minesweeper
             }
             else
             {
-                width = 30;
-                height = 16;
+                width = 16;
+                height = 30;
                 mineCount = 99;
 
                 Application.Current.MainWindow.Height = 650;
@@ -318,7 +315,7 @@ namespace Minesweeper
             return Tuple.Create(width, height, mineCount);
         }
 
-        public bool RandomChoiceGenerator()
+        private bool RandomChoiceGenerator()
         {
             Random random = new Random();
             int randomNumber = random.Next(0, 30);
@@ -332,7 +329,7 @@ namespace Minesweeper
             }
         }
 
-        public void ClickResult(Cell cell)
+        private void ClickResult(Cell cell)
         {
             Trace.WriteLine("i am here");
             if (!cell.IsFlagged)
@@ -420,7 +417,7 @@ namespace Minesweeper
             }
         }
 
-        public void GetRickRolled()
+        private void GetRickRolled()
         {
             if (RandomChoiceGenerator())
             {
@@ -429,7 +426,7 @@ namespace Minesweeper
         }
 
 
-        public void OnSoundTrackClick(object sender, RoutedEventArgs e)
+        private void OnSoundTrackClick(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem menuItem)
             {
@@ -438,7 +435,7 @@ namespace Minesweeper
             }
         }
 
-        public void ImageClick(object sender, RoutedEventArgs e)
+        private void ImageClick(object sender, RoutedEventArgs e)
         {
 
             BitmapImage bitmap = new BitmapImage();
@@ -446,50 +443,51 @@ namespace Minesweeper
             bitmap.UriSource = new Uri("/Minesweeper;component/Resources/normal.png", UriKind.Relative);
             bitmap.EndInit();
             Face.Source = bitmap;
-            Face.Width = 30;
-            Face.Height = 30;
+            Face.Width = 50;
+            Face.Height = 50;
             InitializeGame();
         }
 
-        public void PlaySoundTrack(string track)
+        private void PlaySoundTrack(string track)
         {
             if (!string.IsNullOrEmpty(track))
             {
                 if (track == "Sound track 1")
                 {
 
-                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\lobby-classic-game.mp3"));
+                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\lobby-classic-game.mp3"));
                     mediaPlayer.Play();
                 }
+
                 else if (track == "Sound track 2")
                 {
-                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\soundtrack1.mp3"));
+                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\soundtrack1.mp3"));
                     mediaPlayer.Play();
                 }
                 else if (track == "Sound track 3")
                 {
-                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\miiplaza.mp3"));
+                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\miiplaza.mp3"));
                     mediaPlayer.Play();
                 }
                 else if (track == "Sound track 4")
                 {
-                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\jojo_ending_edited.mp3"));
+                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\jojo_ending_edited.mp3"));
                     mediaPlayer.Play();
                 }
                 else if (track == "Sound track 5")
                 {
-                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\canzoni preferite.mp3"));
+                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\canzoni preferite.mp3"));
                     mediaPlayer.Play();
                 }
 
                 else if (track == "Secret sound track")
                 {
-                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\secret-track.MP3"));
+                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\secret-track.MP3"));
                     mediaPlayer.Play();
                 }
                 else if (track =="among us sound")
                 {
-                    mediaPlayer.Open(new Uri("C:\\Users\\haochenjiang\\source\\repos\\Minesweeper\\Minesweeper\\Resources\\among-us-role-reveal.mp3"));
+                    mediaPlayer.Open(new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\among-us-role-reveal.mp3"));
                     mediaPlayer.Play();
                 }
                 else
@@ -501,7 +499,7 @@ namespace Minesweeper
         }
 
 
-        public int LoadBestTimeFromFile()
+        private int LoadBestTimeFromFile()
         {
             string path = "D:\\cs\\Minesweeper\\Minesweeper\\Resources\\bestTime.txt";
             if (File.Exists(path))
@@ -516,7 +514,7 @@ namespace Minesweeper
         }
 
 
-        public bool CheckIfFinished(ObservableCollection<List<Cell>> map)
+        private bool CheckIfFinished(ObservableCollection<List<Cell>> map)
         {
             foreach (List<Cell> row in map)
             {
@@ -530,7 +528,7 @@ namespace Minesweeper
             }
             return true;
         }
-        public ObservableCollection<List<Cell>> PlaceMines(int minesLeft, ObservableCollection<List<Cell>> map)
+        private ObservableCollection<List<Cell>> PlaceMines(int minesLeft, ObservableCollection<List<Cell>> map)
         {
             Random random = new Random();
             int minePlaced = 0;
@@ -550,7 +548,7 @@ namespace Minesweeper
             return map;
         }
 
-        public void outputMap(ObservableCollection<List<Cell>> map)
+        private void outputMap(ObservableCollection<List<Cell>> map)
         {
             foreach (List<Cell> row in map)
             {
@@ -566,7 +564,7 @@ namespace Minesweeper
 
 
 
-        public ObservableCollection<List<Cell>> RandomShuffle(ObservableCollection<List<Cell>> map)
+        private ObservableCollection<List<Cell>> RandomShuffle(ObservableCollection<List<Cell>> map)
         {
             Random random = new Random();
             ObservableCollection<List<Cell>> newMap = DeepCopy(map);
@@ -596,7 +594,7 @@ namespace Minesweeper
         }
 
 
-        public void UpdateNeighbourMines(ObservableCollection<List<Cell>> map)
+        private void UpdateNeighbourMines(ObservableCollection<List<Cell>> map)
         {
             foreach (List<Cell> row in map)
             {
@@ -619,7 +617,7 @@ namespace Minesweeper
         }
 
 
-        public ObservableCollection<List<Cell>> DeepCopy(ObservableCollection<List<Cell>> map)
+        private ObservableCollection<List<Cell>> DeepCopy(ObservableCollection<List<Cell>> map)
         {
             ObservableCollection<List<Cell>> newMap = new ObservableCollection<List<Cell>>();
             foreach (List<Cell> row in map)
@@ -640,7 +638,7 @@ namespace Minesweeper
         }
 
 
-        public Tuple<Cell, Cell> SwapCells(Cell cell1, Cell cell2)
+        private Tuple<Cell, Cell> SwapCells(Cell cell1, Cell cell2)
         {
             /*
             int tempX = cell1.X;
@@ -667,7 +665,7 @@ namespace Minesweeper
 
             return Tuple.Create(cell1, cell2);
         }
-        public void RevealAdjcentCells(int row, int column)
+        private void RevealAdjcentCells(int row, int column)
         {
             if (row < 0 || row >= width || column < 0 || column >= height)
             {
@@ -695,8 +693,8 @@ namespace Minesweeper
             }
         }
 
-   
-        public void RevealAllMines(ObservableCollection<List<Cell>> map)
+
+        private void RevealAllMines(ObservableCollection<List<Cell>> map)
         {
             foreach (List<Cell> row in map)
             {
@@ -712,8 +710,9 @@ namespace Minesweeper
 
 
         //Amongus Logic
-        public void SpawningMovingObject()
+        private void SpawningMovingObject()
         {
+            Trace.WriteLine("I am called");
             amongus = new MovingObject();
             amongus.IsHitTestVisible = true;
 
@@ -724,7 +723,7 @@ namespace Minesweeper
             amongusTimer.Start();
         }
 
-        public void AmongusTimerTick(object sender, EventArgs e)
+        private void AmongusTimerTick(object sender, EventArgs e)
         {
             if (amongus.IsVisible) 
             { 
@@ -734,14 +733,14 @@ namespace Minesweeper
             else
             {
                 Random random = new Random();
-                if(random.Next(0,10) == 1)
+                if(random.Next(0,10) == 1 && amongusMode)
                 {
                     SpawningMovingObject();
                 }
             }
         }
 
-        public void UpdateAmongusPosition()
+        private void UpdateAmongusPosition()
         {
             Random random = new Random();
             if (amongus != null)
@@ -755,17 +754,14 @@ namespace Minesweeper
             }
         }
 
-        public void ToggleAmongus(object sender, RoutedEventArgs e)
+        private void ToggleAmongus(object sender, RoutedEventArgs e)
         {
             amongusMode = !amongusMode;
             if (!amongusMode)
             {
-                
-                
                 amongusTimer.Stop();
                 AmongusCanvas.Children.Clear();
                 MessageBox.Show("The imposter has been ejected");
-
                 return;
             }
             MessageBox.Show("A imposter has infiltrated your game, it will click on random cells until you click it to make it go away. It has a chance to respawn");
@@ -773,7 +769,7 @@ namespace Minesweeper
             SpawningMovingObject();
         }
 
-        public void AmongusRandomClick()
+        private void AmongusRandomClick()
         {
             Random random = new Random();
             if (random.Next(0, 20) == 0)

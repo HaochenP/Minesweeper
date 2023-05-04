@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Minesweeper"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" ResizeMode="NoResize">
     <Window.Resources>
         <local:RevealedCellContentConverter x:Key="RevealedCellContentConverter" />
         <local:RevealedNeighbouringMinesConverter x:Key="RevealedNeighbouringMinesConverter" />
@@ -125,7 +125,8 @@
                                                 <MultiDataTrigger>
                                                     <MultiDataTrigger.Conditions>
                                                         <Condition Binding="{Binding IsFlagged}" Value="True" />
-                                                    </MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding IsRevealed}" Value="False" />
+                                                        </MultiDataTrigger.Conditions>
                                                     <Setter Property="Background" Value="Red" />
                                                     <Setter Property="Content" Value="" />
                                                 </MultiDataTrigger>

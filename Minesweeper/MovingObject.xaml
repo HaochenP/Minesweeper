@@ -2,9 +2,9 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              IsHitTestVisible="True"
-             Width="30" Height="30"
+             Width="28" Height="28"
              Mouse.PreviewMouseDown="MovingObjectMouseDown">
     <Grid>
-        <Image x:Name="MovingImage" Source="C:\Users\haochenjiang\source\repos\Minesweeper\Minesweeper\Resources\amongus.webp" Panel.ZIndex="999"/>
+        <Image x:Name="MovingImage" Source="D:\cs\Minesweeper\Minesweeper\Resources\amongus.webp" Panel.ZIndex="999"/>
     </Grid>
 </UserControl>
