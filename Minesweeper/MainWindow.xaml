@@ -79,7 +79,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Click="ButtonClick" Tag="{Binding}" Margin="0" HorizontalAlignment="Left" Foreground="Green" Width="30" Height="30" MouseRightButtonDown="Flag"
+                                    <Button Click="CellButtonClick" Tag="{Binding}" Margin="0" HorizontalAlignment="Left" Foreground="Green" Width="30" Height="30" MouseRightButtonDown="Flag"
                                         IsEnabled="{Binding DataContext.IsGaming, RelativeSource={RelativeSource AncestorType={x:Type Window}}}">
 
 

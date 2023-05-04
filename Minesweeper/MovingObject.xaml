@@ -5,6 +5,6 @@
              Width="28" Height="28"
              Mouse.PreviewMouseDown="MovingObjectMouseDown">
     <Grid>
-        <Image x:Name="MovingImage" Source="D:\cs\Minesweeper\Minesweeper\Resources\amongus.webp" Panel.ZIndex="999"/>
+        <Image x:Name="MovingImage" Source="/Minesweeper;component/Resources/amongus.webp" Panel.ZIndex="999"/>
     </Grid>
 </UserControl>
