@@ -11,7 +11,7 @@
         <local:RevealedNeighbouringMinesConverter x:Key="RevealedNeighbouringMinesConverter" />
     </Window.Resources>
 
-    <Grid x:Name="grid">
+    <Grid Name="grid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -29,9 +29,9 @@
                 <MenuItem Header="New Game" Click="NewGame"/>
             </MenuItem>
             <MenuItem Header="Difficulty">
-                <MenuItem x:Name="EasyMenuItem" Header="Easy" Click="OnDifficultyMenuItemClick"/>
-                <MenuItem x:Name="MediumMenuItem" Header="Medium" Click="OnDifficultyMenuItemClick"/>
-                <MenuItem x:Name="HardMenuItem" Header="Hard" Click="OnDifficultyMenuItemClick"/>
+                <MenuItem Name="EasyMenuItem" Header="Easy" Click="OnDifficultyMenuItemClick"/>
+                <MenuItem Name="MediumMenuItem" Header="Medium" Click="OnDifficultyMenuItemClick"/>
+                <MenuItem Name="HardMenuItem" Header="Hard" Click="OnDifficultyMenuItemClick"/>
             </MenuItem>
 
             <MenuItem Header="Game modes" Name ="Gamemodes">
@@ -42,13 +42,17 @@
 
 
             <MenuItem Header="Sound tracks" Name ="SoundTracks">
-                <MenuItem  Header="Sound track 1" Click="OnSoundTrackClick"/>
-                <MenuItem  Header="Sound track 2" Click="OnSoundTrackClick"/>
+                <MenuItem  Header="Kahoot" Click="OnSoundTrackClick"/>
+                <MenuItem  Header="Mii" Click="OnSoundTrackClick"/>
                 <MenuItem Header="Sound track 3" Click="OnSoundTrackClick" />
                 <MenuItem Header="Sound track 4" Click="OnSoundTrackClick" />
                 <MenuItem Header="Sound track 5" Click="OnSoundTrackClick" />
-                
+                <MenuItem Header="Sound track 6" Click="OnSoundTrackClick" />
+                <MenuItem Header="Thomas the tank engine theme" Click="OnSoundTrackClick" />
+                <MenuItem Header="Minecraft" Click="OnSoundTrackClick"/>
                 <MenuItem Header="Stop Playing" Click="OnSoundTrackClick"/>
+
+
             </MenuItem>
             <MenuItem Header="Help" Name ="Video">
                 <MenuItem  Header="Help to concentrate" Click="DisplayVideo"/>
@@ -58,13 +62,13 @@
 
         </Menu>
         <MediaElement IsMuted="True"  Name="mePlayer" Stretch="Fill" Grid.Row="3"  HorizontalAlignment="Stretch" Grid.Column="2" Panel.ZIndex="1"/>
-        <Label Content ="" x:Name="TimerLabel" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2" Grid.Row=" 2" Panel.ZIndex="1"/>
-        <Image Panel.ZIndex="2" x:Name="Face" Grid.Row ="1" Source="/Minesweeper;component/Resources/normal.png" HorizontalAlignment="Center" MouseLeftButtonDown="ImageClick" Width=" 50" Height="50" Margin="2"/>
-        <Label Content =" 99" x:Name="BestTimeLabel"  VerticalAlignment="Top" Margin="2" Grid.Row=" 1" HorizontalAlignment="Left"/>
-        <Label Content =" 0" x:Name="TimeSpentLabel"  VerticalAlignment="Top" Margin="2" Grid.Row=" 1" HorizontalAlignment="Right"/>
+        <Label Content ="" Name="TimerLabel" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2" Grid.Row=" 2" Panel.ZIndex="1"/>
+        <Image Panel.ZIndex="2" Name="Face" Grid.Row ="1" Source="/Minesweeper;component/Resources/normal.png" HorizontalAlignment="Center" MouseLeftButtonDown="ImageClick" Width=" 50" Height="50" Margin="2"/>
+        <Label Content =" 99" Name="BestTimeLabel"  VerticalAlignment="Top" Margin="2" Grid.Row=" 1" HorizontalAlignment="Left"/>
+        <Label Content =" 0" Name="TimeSpentLabel"  VerticalAlignment="Top" Margin="2" Grid.Row=" 1" HorizontalAlignment="Right"/>
 
  
-        <Grid x:Name="GameArea" Grid.Row="3" Panel.ZIndex="2">
+        <Grid Name="GameArea" Grid.Row="3" Panel.ZIndex="2">
 
             <ItemsControl ItemsSource="{Binding Map}" Grid.Row="3" Margin="3" HorizontalAlignment="Center" Panel.ZIndex="0" Name="CellGrid">
                 <ItemsControl.ItemsPanel>
@@ -105,7 +109,7 @@
                                                 <Setter Property="Template">
                                                     <Setter.Value>
                                                         <ControlTemplate TargetType="Button">
-                                                            <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                            <Border Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                                                             </Border>
                                                             <ControlTemplate.Triggers>
@@ -141,7 +145,6 @@
                                                         <Setter Property="Background" Value="DarkRed" />
                                                         <Setter Property="Content" Value="💣" />
                                                     </MultiDataTrigger>
-
                                                 </Style.Triggers>
                                             </Style>
                                         </Button.Style>
@@ -152,11 +155,11 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <Canvas x:Name="AmongusCanvas" Panel.ZIndex="100">
+            <Canvas Name="AmongusCanvas" Panel.ZIndex="100">
                 
             </Canvas>
-            <Canvas x:Name="VideoCanvas" Panel.ZIndex="100">
-                <MediaElement Width ="350" Height="350" x:Name="FadingMedia" LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="Fill" Opacity="1" Grid.Row="3" IsHitTestVisible="False"/>
+            <Canvas Name="VideoCanvas" Panel.ZIndex="100">
+                <MediaElement Width ="350" Height="350" Name="FadeoutVideo" LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="Fill" Opacity="1" Grid.Row="3" IsHitTestVisible="False"/>
             </Canvas>
         </Grid>
 

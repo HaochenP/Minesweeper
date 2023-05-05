@@ -18,55 +18,53 @@ namespace Minesweeper
 {
     public partial class MainWindow : Window
     {
+        private ObservableCollection<List<Cell>> map = new();
 
-        public MainWindow()
-        {
-            InitializeComponent();
-            InitializeGame();
-            var viewModel = new MainViewModel { Map = map };
-            DataContext = viewModel;
-            bestTime = LoadBestTimeFromFile();
-            //SpawningMovingObject();
-        }
-
-        
-        ObservableCollection<List<Cell>> map = new ObservableCollection<List<Cell>>();
         // Initialize
         private int width = 10;
         private int height = 10;
         private string difficulty = "Easy";
         private int mines = 50;
+
         // ShuffleTimer
-        private DispatcherTimer shuffleTimer;
+        private DispatcherTimer? shuffleTimer;
         private int elapsedTime;
         private bool shuffleMode = false;
+
         // Score timer
-        private DispatcherTimer timer;
+        private DispatcherTimer? timer;
         private int timeSpent;
         private bool firstClick = true;
         private int bestTime = 999;
         private bool isVideoPlaying = false;
         private bool amongusMode = false;
-        private string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        private readonly string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
         //Amongus
-        private MovingObject amongus;
-        private DispatcherTimer amongusTimer;
-        private MediaPlayer mediaPlayer = new MediaPlayer();
+        private MovingObject? amongus;
+        private DispatcherTimer? amongusTimer;
+        private readonly MediaPlayer mediaPlayer = new();
         private bool isGamePlaying = false;
 
-        
+        public MainWindow()
+        {
+            InitializeComponent();
+            InitializeGame();
+            MainViewModel viewModel = new() { Map = map };
+            DataContext = viewModel;
+            bestTime = LoadBestTimeFromFile();
+            Trace.WriteLine("best time" + bestTime);
+            BestTimeLabel.Content = "Best time " + bestTime;
+            //SpawningMovingObject();
+        }
 
 
 
         private void InitializeGame()
         {
-            
-            BitmapImage bitmap = new BitmapImage();
-            bitmap.BeginInit();
+
             string path = Path.Combine(baseDirectory, "Resources", "normal.png");
-            bitmap.UriSource = new Uri(path);
-            bitmap.EndInit();
-            Face.Source = bitmap;
+            Face.Source = CreateBitImage(path);
             Face.Width = 50;
             Face.Height = 50;
             timeSpent = 0;
@@ -92,7 +90,7 @@ namespace Minesweeper
 
             for (int i = 0; i < width; i++)
             {
-                List<Cell> row = new List<Cell>();
+                List<Cell> row = new();
                 for (int j = 0; j < height; j++)
                 {
                     row.Add(new Cell(i, j, difficulty));
@@ -100,15 +98,8 @@ namespace Minesweeper
                 map.Add(row);
             }
             PlaceMines();
-            //map = PlaceMines(mines, map);
-            //map = RandomShuffle(map);
-            //UpdateNeighbourMines(map);
-            var viewModel = new MainViewModel { Map = map };
+            MainViewModel viewModel = new() { Map = map };
             DataContext = viewModel;
-            // Timer functionality
-
-
-
         }
 
         private void RecordTimeSpent()
@@ -122,8 +113,6 @@ namespace Minesweeper
             {
                 timer = new DispatcherTimer();
                 timer.Tick += TimerTick;
-
-
             }
             timer.Interval = TimeSpan.FromSeconds(1);
             timer.Start();
@@ -141,7 +130,7 @@ namespace Minesweeper
 
         private void ShuffleModeOn()
         {
-            MessageBox.Show("Shuffle mode is on, any remaining unclicked cells will be randomly shuffled every 10 seconds");
+            _ = MessageBox.Show("Shuffle mode is on, any remaining unclicked cells will be randomly shuffled every 10 seconds");
             elapsedTime = 10;
             if (shuffleTimer != null)
             {
@@ -156,7 +145,7 @@ namespace Minesweeper
             }
             shuffleTimer.Interval = TimeSpan.FromSeconds(1);
             if (isGamePlaying) { shuffleTimer.Start(); }
-            
+
         }
 
         private void ShuffleModeOff()
@@ -190,7 +179,7 @@ namespace Minesweeper
             {
                 map = RandomShuffle(map);
                 UpdateNeighbourMines(map);
-                var viewModel = (MainViewModel)DataContext;
+                MainViewModel viewModel = (MainViewModel)DataContext;
                 viewModel.Map = map;
                 elapsedTime = 10;
                 TimerLabel.Content = $"Time left until shuffle : {elapsedTime}s";
@@ -209,7 +198,9 @@ namespace Minesweeper
             }
             else
             {
-                mePlayer.Source = new Uri(@"D:\cs\Minesweeper\Minesweeper\Resources\subway.mp4");
+                string path = Path.Combine(baseDirectory, "Resources", "subway.mp4");
+
+                mePlayer.Source = new Uri(path);
                 Application.Current.MainWindow.Height += 500;
                 Application.Current.MainWindow.Width += 500;
                 isVideoPlaying = true;
@@ -228,11 +219,9 @@ namespace Minesweeper
 
         private void SaveBestTimeToFile()
         {
-            string path = @"D:\cs\Minesweeper\Minesweeper\Resources\bestTime.txt";
-            using (StreamWriter sw = File.CreateText(path))
-            {
-                sw.WriteLine(bestTime);
-            }
+            string path = Path.Combine(baseDirectory, "Resources", "bestTime.txt");
+            using StreamWriter sw = File.CreateText(path);
+            sw.WriteLine(bestTime);
         }
 
         private void CellButtonClick(object sender, RoutedEventArgs e)
@@ -243,10 +232,7 @@ namespace Minesweeper
                 firstClick = false;
             }
             isGamePlaying = true;
-            if(amongusTimer != null)
-            {
-                amongusTimer.Start();
-            }
+            amongusTimer?.Start();
             GetRickRolled();
             Button button = (Button)sender;
             Cell cell = (Cell)button.Tag;
@@ -280,10 +266,7 @@ namespace Minesweeper
 
         private Tuple<int, int, int> gameSetting(string difficulty)
         {
-            int width = 0;
-            int height = 0;
-            int mineCount = 0;
-
+            int mineCount;
             if (difficulty == "Easy")
             {
                 Application.Current.MainWindow.Height = 450;
@@ -321,10 +304,21 @@ namespace Minesweeper
 
         private bool RandomChoiceGenerator(int chance)
         {
-            Random random = new Random();
+            Random random = new();
             int randomNumber = random.Next(0, chance);
             return randomNumber == 0;
         }
+        
+        private BitmapImage CreateBitImage(string path)
+        {
+            BitmapImage bitmap = new();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(path);
+            bitmap.EndInit();
+            return bitmap;
+
+        }
+
 
         private void ClickResult(Cell cell)
         {
@@ -341,12 +335,10 @@ namespace Minesweeper
 
                             isGamePlaying = false;
                             // Change face to win face
-                            BitmapImage bitmap = new BitmapImage();
-                            bitmap.BeginInit();
+   
                             string path = Path.Combine(baseDirectory, "Resources", "win.png");
-                            bitmap.UriSource = new Uri(path);
-                            bitmap.EndInit();
-                            Face.Source = bitmap;
+  
+                            Face.Source = CreateBitImage(path);
                             Face.Width = 50;
                             Face.Height = 50;
                             // Stop timer
@@ -356,36 +348,36 @@ namespace Minesweeper
 
 
                             // Set IsGaming to false
-                            var viewModel = DataContext as MainViewModel;
-                            viewModel.IsGaming = false;
-                            CustomMessageBox customMessageBox = new CustomMessageBox
+                            PlaySoundTrack("Victory");
+                            MainViewModel? viewModel = DataContext as MainViewModel;
+                            CustomMessageBox customMessageBox = new()
                             {
                                 Owner = this
                             };
-                            bitmap = new BitmapImage();
-                            bitmap.BeginInit();
+                            if (amongusTimer != null)
+                            {
+                                amongusTimer.Stop();
+                            }
 
                             path = Path.Combine(baseDirectory, "Resources", "poggers.png");
-                            bitmap.UriSource = new Uri(path);
-                            bitmap.EndInit();
 
-                            customMessageBox.DisplayImage.Source = bitmap;
+
+                            customMessageBox.DisplayImage.Source = CreateBitImage(path);
                             customMessageBox.OkButton.Content = "You won, very cool";
                             customMessageBox.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-                            customMessageBox.ShowDialog();
+                            _ = customMessageBox.ShowDialog();
+                            PlaySoundTrack("stop");
                             // Show message box
-                            MessageBox.Show("You unlocked a secret sound track, you can now play it in the sound tracks");
-
-
+                            _ = MessageBox.Show("You unlocked a secret sound track, you can now play it in the sound tracks");
 
 
                             // Add new menu item
-                            MenuItem newMenuItem2 = new MenuItem
+                            MenuItem newMenuItem2 = new()
                             {
                                 Header = "Secret sound track"
                             };
                             newMenuItem2.Click += new RoutedEventHandler(OnSoundTrackClick);
-                            SoundTracks.Items.Add(newMenuItem2);
+                            _ = SoundTracks.Items.Add(newMenuItem2);
 
                             // Check for best time
                             if (timeSpent < bestTime)
@@ -393,7 +385,7 @@ namespace Minesweeper
                                 bestTime = timeSpent;
                                 SaveBestTimeToFile();
                                 BestTimeLabel.Content = $"Best Time: {bestTime}";
-                                MessageBox.Show("Pog, You got a new best time");
+                                _ = MessageBox.Show("Pog, You got a new best time");
                             }
 
 
@@ -407,28 +399,27 @@ namespace Minesweeper
                     cell.IsRevealed = true;
                     RevealAllMines(map);
 
-                    BitmapImage bitmap = new BitmapImage();
-                    bitmap.BeginInit();
                     string path = Path.Combine(baseDirectory, "Resources", "lose.png");
-                    bitmap.UriSource = new Uri(path);
-                    bitmap.EndInit();
-                    Face.Source = bitmap;
+                    Face.Source = CreateBitImage(path);
                     ShuffleModeOff();
-
+                    if (amongusTimer != null)
+                    {
+                        amongusTimer.Stop();
+                    }
                     Face.Width = 50;
                     Face.Height = 50;
 
                     timer?.Stop();
 
-                    var viewModel = DataContext as MainViewModel;
-                    viewModel.IsGaming = false;
-                    CustomMessageBox customMessageBox = new CustomMessageBox
+                    PlaySoundTrack("You lose");
+                    MainViewModel? viewModel = DataContext as MainViewModel;
+                    CustomMessageBox customMessageBox = new()
                     {
                         Owner = this,
                         WindowStartupLocation = WindowStartupLocation.CenterOwner
                     };
-                    customMessageBox.ShowDialog();
-
+                    _ = customMessageBox.ShowDialog();
+                    PlaySoundTrack("stop");
 
                     //InitializeGame();
                 }
@@ -455,29 +446,43 @@ namespace Minesweeper
 
         private void ImageClick(object sender, RoutedEventArgs e)
         {
+            
             isGamePlaying = false;
-            BitmapImage bitmap = new BitmapImage();
-            bitmap.BeginInit();
+
             string path = Path.Combine(baseDirectory, "Resources", "normal.png");
-            bitmap.UriSource = new Uri(path);
-            bitmap.EndInit();
-            Face.Source = bitmap;
+
+            Face.Source = CreateBitImage(path);
             Face.Width = 50;
             Face.Height = 50;
+            if (amongusTimer != null)
+            {
+                amongusTimer.Stop();
+            }
+            if (shuffleTimer != null)
+            {
+                shuffleTimer.Stop();
+            }
+
             InitializeGame();
         }
 
         private void PlaySoundTrack(string track)
         {
-            Dictionary<string, string> soundTracks = new Dictionary<string, string>{
-                { "Sound track 1", "lobby-classic-game.mp3" },
-                { "Sound track 2", "soundtrack1.mp3" },
+            Dictionary<string, string> soundTracks = new()
+            {
+                { "Kahoot", "lobby-classic-game.mp3" },
+                { "Mii", "soundtrack1.mp3" },
                 { "Sound track 3", "miiplaza.mp3" },
                 { "Sound track 4", "jojo_ending_edited.mp3" },
                 { "Sound track 5", "canzoni preferite.mp3" },
                 { "Secret sound track", "secret-track.MP3" },
                 { "among us sound" , "among-us-role-reveal.mp3"},
-                {"among us eject", "Among us Eject Sound Effect.mp3" }
+                {"among us eject", "Among us Eject Sound Effect.mp3" },
+                {"Sound track 6", "jerma_rat_song.mp3"},
+                {"Thomas the tank engine theme", "thetankenginethemesong.mp3" },
+                {"You lose", "Sad Violin - Sound Effect.mp3" },
+                {"Victory", "victory.mp3" },
+                {"Minecraft", "Volume Alpha 08. Minecraft.mp3"},
             };
 
             if (soundTracks.ContainsKey(track))
@@ -498,11 +503,11 @@ namespace Minesweeper
 
         private int LoadBestTimeFromFile()
         {
-            string path = "D:\\cs\\Minesweeper\\Minesweeper\\Resources\\bestTime.txt";
+            string path = Path.Combine(baseDirectory, "Resources", "bestTime.txt");
             if (File.Exists(path))
             {
                 string[] lines = File.ReadAllLines(path);
-                return Int32.Parse(lines[0]);
+                return int.Parse(lines[0]);
             }
             else
             {
@@ -528,7 +533,7 @@ namespace Minesweeper
 
         private void PlaceMines()
         {
-            Random random = new Random();
+            Random random = new();
             int minePlaced = 0;
 
             while (minePlaced < mines)
@@ -543,27 +548,7 @@ namespace Minesweeper
                 }
             }
         }
-        /*
-        private ObservableCollection<List<Cell>> PlaceMines(int minesLeft, ObservableCollection<List<Cell>> map)
-        {
-            Random random = new Random();
-            int minePlaced = 0;
 
-            while (minePlaced < minesLeft)
-            {
-                int row = random.Next(map.Count);
-                int col = random.Next(map[0].Count);
-                if (!map[row][col].IsMine)
-                {
-                    map[row][col].IsMine = true;
-                    minePlaced++;
-                    map[row][col].UpdateAdjacentMinesForNeighbors(row, col, map);
-                }
-            }
-            //outputMap(map);
-            return map;
-        }
-        */
         private void outputMap(ObservableCollection<List<Cell>> map)
         {
             foreach (List<Cell> row in map)
@@ -572,9 +557,7 @@ namespace Minesweeper
                 {
                     Trace.WriteLine(cell.X + " " + cell.Y + " " + cell.IsMine + " number of adjcent mines: " + cell.NeighbouringMines);
                     Trace.WriteLine(cell.IsRevealed);
-                    Console.WriteLine(cell.X + " " + cell.Y + " " + cell.IsMine + " number of adjcent mines: " + cell.NeighbouringMines);
                 }
-                Console.WriteLine();
             }
         }
 
@@ -582,7 +565,7 @@ namespace Minesweeper
 
         private ObservableCollection<List<Cell>> RandomShuffle(ObservableCollection<List<Cell>> map)
         {
-            Random random = new Random();
+            Random random = new();
             ObservableCollection<List<Cell>> newMap = DeepCopy(map);
 
             foreach (List<Cell> row in newMap.ToList())
@@ -598,7 +581,7 @@ namespace Minesweeper
                         int currentCellCol = cell.Y;
                         if (!newMap[randomRow][randomCol].IsRevealed && !newMap[currentCellRow][currentCellCol].IsRevealed)
                         {
-                            var result = SwapCells(cell, newMap[randomRow][randomCol]);
+                            Tuple<Cell, Cell> result = SwapCells(cell, newMap[randomRow][randomCol]);
                             newMap[currentCellRow][currentCellCol] = result.Item1;
                             newMap[randomRow][randomCol] = result.Item2;
                         }
@@ -635,10 +618,10 @@ namespace Minesweeper
 
         private ObservableCollection<List<Cell>> DeepCopy(ObservableCollection<List<Cell>> map)
         {
-            ObservableCollection<List<Cell>> newMap = new ObservableCollection<List<Cell>>();
+            ObservableCollection<List<Cell>> newMap = new();
             foreach (List<Cell> row in map)
             {
-                List<Cell> newRow = new List<Cell>();
+                List<Cell> newRow = new();
                 foreach (Cell cell in row)
                 {
                     newRow.Add(new Cell(cell.X, cell.Y, cell.Difficulty)
@@ -728,20 +711,20 @@ namespace Minesweeper
         //Amongus Logic
         private void SpawningMovingObject()
         {
-            Trace.WriteLine("I am called");
+            //Trace.WriteLine("I am called");
             amongus = new MovingObject
             {
                 IsHitTestVisible = true
             };
 
-            AmongusCanvas.Children.Add(amongus);
+            _ = AmongusCanvas.Children.Add(amongus);
             amongusTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(1)
             };
             amongusTimer.Tick += AmongusTimerTick;
-            if(isGamePlaying) { amongusTimer.Start(); }
-            
+            if (isGamePlaying) { amongusTimer.Start(); }
+
         }
 
         private void AmongusTimerTick(object sender, EventArgs e)
@@ -762,7 +745,7 @@ namespace Minesweeper
 
         private void UpdateAmongusPosition()
         {
-            Random random = new Random();
+            Random random = new();
             if (amongus != null)
             {
                 int newX = random.Next(0, (int)GameArea.ActualWidth - (int)amongus.Width);
@@ -776,34 +759,28 @@ namespace Minesweeper
 
         private void ToggleAmongus(object sender, RoutedEventArgs e)
         {
-
-                amongusMode = !amongusMode;
-                if (!amongusMode)
-                {
-                    amongusTimer.Stop();
-                    AmongusCanvas.Children.Clear();
-                    MessageBox.Show("The imposter has been ejected");
-                    PlaySoundTrack("among us eject");
-                    return;
-                }
-                MessageBox.Show("A imposter has infiltrated your game, it will click on random cells until you click it to make it go away. It has a chance to respawn");
-                PlaySoundTrack("among us sound");
-                amongusMode = true;
-                SpawningMovingObject();
-
-                
-            
-
+            amongusMode = !amongusMode;
+            if (!amongusMode)
+            {
+                amongusTimer.Stop();
+                AmongusCanvas.Children.Clear();
+                _ = MessageBox.Show("The imposter has been ejected");
+                PlaySoundTrack("among us eject");
+                return;
+            }
+            _ = MessageBox.Show("A imposter has infiltrated your game, it will click on random cells until you click it to make it go away. It has a chance to respawn");
+            PlaySoundTrack("among us sound");
+            SpawningMovingObject();
         }
 
         private void AmongusRandomClick()
         {
-            Random random = new Random();
+            Random random = new();
             if (RandomChoiceGenerator(20))
             {
                 int row = random.Next(0, map.Count);
                 int column = random.Next(0, map[0].Count);
-                var cell = map[row][column];
+                Cell cell = map[row][column];
                 if (!map[row][column].IsRevealed)
                 {
                     ClickResult(cell);
@@ -819,17 +796,14 @@ namespace Minesweeper
             }
             else
             {
-                MessageBox.Show("You can't stop time if you haven't started the game yet");
+                _ = MessageBox.Show("You can't stop time if you haven't started the game yet");
             }
-            
+
         }
 
         private void Zawarudo()
         {
-            if (timer != null)
-            {
-                timer.Stop();
-            }
+            timer?.Stop();
             if (amongusTimer != null && amongusMode)
             {
                 amongusTimer.Stop();
@@ -844,10 +818,7 @@ namespace Minesweeper
 
         private void StopTimeResume()
         {
-            if (timer != null)
-            {
-                timer.Start();
-            }
+            timer?.Start();
             if (amongusTimer != null && amongusMode)
             {
                 amongusTimer.Start();
@@ -863,61 +834,55 @@ namespace Minesweeper
 
             if (difficulty == "Easy")
             {
-                FadingMedia.Height = 350;
-                FadingMedia.Width = 350;
+                FadeoutVideo.Height = 350;
+                FadeoutVideo.Width = 350;
 
 
             }
             else if (difficulty == "Medium")
             {
-                FadingMedia.Height = 650;
-                FadingMedia.Width = 600;
+                FadeoutVideo.Height = 650;
+                FadeoutVideo.Width = 600;
 
             }
             else
             {
-                FadingMedia.Height = 650;
-                FadingMedia.Width = 1000;
+                FadeoutVideo.Height = 650;
+                FadeoutVideo.Width = 1000;
 
             }
-            FadingMedia.Source = new Uri("D:\\cs\\Minesweeper\\Minesweeper\\Resources\\Y2Mate.is - ZA WARUDO-7ePWNmLP0Z0-720p-1654074006604.mp4");
-            FadingMedia.Play();
-            FadingMedia.IsHitTestVisible = true;
+            string path = Path.Combine(baseDirectory, "Resources", "stoptime.mp4");
+
+            FadeoutVideo.Source = new Uri(path);
+            FadeoutVideo.Play();
+            FadeoutVideo.IsHitTestVisible = true;
 
 
-            DoubleAnimation myDoubleAnimation = new DoubleAnimation();
-            myDoubleAnimation.From = 1;
-            myDoubleAnimation.To = 0;
-            myDoubleAnimation.Duration = new Duration(TimeSpan.FromSeconds(5));
+            DoubleAnimation myDoubleAnimation = new()
+            {
+                From = 1,
+                To = 0,
+                Duration = new Duration(TimeSpan.FromSeconds(5))
+            };
 
 
-            Storyboard fadeOutStoryboard = new Storyboard();
-            Storyboard.SetTarget(myDoubleAnimation, FadingMedia);
+            Storyboard fadeOutStoryboard = new();
+            Storyboard.SetTarget(myDoubleAnimation, FadeoutVideo);
             Storyboard.SetTargetProperty(myDoubleAnimation, new PropertyPath(OpacityProperty));
             fadeOutStoryboard.Children.Add(myDoubleAnimation);
             fadeOutStoryboard.Begin();
 
-            // Wait for the storyboard to finish.
             await Task.Delay(myDoubleAnimation.Duration.TimeSpan);
 
-            FadingMedia.Stop();
-            FadingMedia.Opacity = 1.0;
-            FadingMedia.IsHitTestVisible = false;
+            FadeoutVideo.Stop();
+            FadeoutVideo.Opacity = 1.0;
+            FadeoutVideo.IsHitTestVisible = false;
             await Task.Delay(TimeSpan.FromSeconds(5));
 
             StopTimeResume();
 
-            //FadingMedia.MediaEnded += OnMediaEnded;
         }
 
-        private void OnMediaEnded(object sender, RoutedEventArgs e)
-        {
-            // Detach the MediaEnded event handler
-            FadingMedia.MediaEnded -= OnMediaEnded;
-
-            // Remove the MediaElement from the grid
-            GameArea.Children.Remove(FadingMedia);
-        }
     }
 }
 

@@ -16,17 +16,6 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _IsGaming = true;
-    public bool IsGaming
-    {
-        get { return _IsGaming; }
-        set
-        {
-            _IsGaming = value;
-            OnPropertyChanged(nameof(IsGaming));
-        }
-    }
-
 
     public event PropertyChangedEventHandler PropertyChanged;
     protected void OnPropertyChanged(string propertyName)
